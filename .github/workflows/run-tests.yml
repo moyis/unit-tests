@@ -18,7 +18,7 @@ jobs:
           cache: maven
 
       - name: Build and Test
-        run: mvn install
+        run: mvn clean install
 
       - id: branch-coverage-percentage
         name: Extract branch coverage percentage
