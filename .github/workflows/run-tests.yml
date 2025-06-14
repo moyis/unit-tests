@@ -26,7 +26,7 @@ jobs:
           mvn jacoco-console-reporter:report |
           grep "all classes" |
           awk '{print $(NF-4)}' |
-          tr -d '%' |
+          cut -d. -f1 |
           { read coverage; echo "COVERAGE=$coverage"; } >> $GITHUB_OUTPUT
 
       - id: pitest-test-strength-percentage
@@ -49,5 +49,5 @@ jobs:
           MUTATION: ${{ steps.pitest-test-strength-percentage.outputs.MUTATION }}
           USER: "${{ github.event.pull_request.user.id }}-${{ github.event.pull_request.user.login }}"
         run: |
-          echo $((($COVERAGE + $MUTATION)/2)) &&
+          echo "$((($COVERAGE + $MUTATION)/2))" &&
           redis-cli --tls -u "$REDIS_URL" ZADD unit-tests "$((($COVERAGE + $MUTATION)/2))" "$USER"
