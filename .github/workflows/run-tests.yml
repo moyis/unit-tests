@@ -18,7 +18,7 @@ jobs:
           cache: maven
 
       - name: Build and Test
-        run: mvn pitest:mutationCoverage
+        run: mvn clean install
 
       - id: branch-coverage-percentage
         name: Extract branch coverage percentage
@@ -26,8 +26,8 @@ jobs:
           mvn jacoco-console-reporter:report |
           grep "all classes" |
           awk '{print $(NF-4)}' |
-          tr -d '%' |
-          { read coverage; echo "COVERAGE=coverage"; } >> $GITHUB_OUTPUT
+          cut -d. -f1 |
+          { read coverage; echo "COVERAGE=$coverage"; } >> $GITHUB_OUTPUT
 
       - id: pitest-test-strength-percentage
         name: Extract test strength percentage
@@ -36,12 +36,18 @@ jobs:
           grep -oE '[0-9]+%' |
           tail -n 1 |
           tr -d '%' |
-          { read mutation; echo "MUTATION=mutation"; } >> $GITHUB_OUTPUT
+          { read mutation; echo "MUTATION=$mutation"; } >> $GITHUB_OUTPUT
+
+      - name: Install redis
+        run: sudo apt-get update && sudo apt-get install -y redis-tools
 
       - id: echo-coverage
         name: Echo coverage
         env:
+          REDIS_URL: ${{ secrets.REDIS_CONNECTION_STRING }}
           COVERAGE: ${{ steps.branch-coverage-percentage.outputs.COVERAGE }}
           MUTATION: ${{ steps.pitest-test-strength-percentage.outputs.MUTATION }}
+          USER: "${{ github.event.pull_request.user.id }}-${{ github.event.pull_request.user.login }}"
         run: |
-          echo "Branch coverage percentage: $COVERAGE" && echo "Mutation test strength percentage: $MUTATION"
+          echo "$((($COVERAGE + $MUTATION)/2))" &&
+          redis-cli --tls -u "$REDIS_URL" ZADD unit-tests "$((($COVERAGE + $MUTATION)/2))" "$USER"
