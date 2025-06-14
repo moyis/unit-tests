@@ -1,0 +1,47 @@
+on:
+  pull_request:
+
+name: Run Tests
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Build and Test
+        run: mvn pitest:mutationCoverage
+
+      - id: branch-coverage-percentage
+        name: Extract branch coverage percentage
+        run: |
+          mvn jacoco-console-reporter:report |
+          grep "all classes" |
+          awk '{print $(NF-4)}' |
+          tr -d '%' |
+          { read coverage; echo "COVERAGE=coverage"; } >> $GITHUB_OUTPUT
+
+      - id: pitest-test-strength-percentage
+        name: Extract test strength percentage
+        run: |
+          mvn pitest:mutationCoverage |
+          grep -oE '[0-9]+%' |
+          tail -n 1 |
+          tr -d '%' |
+          { read mutation; echo "MUTATION=mutation"; } >> $GITHUB_OUTPUT
+
+      - id: echo-coverage
+        name: Echo coverage
+        env:
+          COVERAGE: ${{ steps.branch-coverage-percentage.outputs.COVERAGE }}
+          MUTATION: ${{ steps.pitest-test-strength-percentage.outputs.MUTATION }}
+        run: |
+          echo "Branch coverage percentage: $COVERAGE" && echo "Mutation test strength percentage: $MUTATION"
