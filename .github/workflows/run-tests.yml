@@ -44,4 +44,4 @@ jobs:
           COVERAGE: ${{ steps.branch-coverage-percentage.outputs.COVERAGE }}
           MUTATION: ${{ steps.pitest-test-strength-percentage.outputs.MUTATION }}
         run: |
-          echo "Branch coverage percentage: $COVERAGE" && echo "Mutation test strength percentage: $MUTATION"
+          echo "Branch coverage percentage: $COVERAGE" && echo "mutation-test strength percentage: $MUTATION"
