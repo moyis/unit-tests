@@ -27,6 +27,7 @@ jobs:
           grep "all classes" |
           awk '{print $(NF-4)}' |
           tr -d '%' |
+          sed 's/\./,/' |
           { read coverage; echo "COVERAGE=$coverage"; } >> $GITHUB_OUTPUT
 
       - id: pitest-test-strength-percentage
