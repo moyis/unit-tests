@@ -27,7 +27,7 @@ jobs:
           grep "all classes" |
           awk '{print $(NF-4)}' |
           tr -d '%' |
-          { read coverage; echo "COVERAGE=coverage"; } >> $GITHUB_OUTPUT
+          { read coverage; echo "COVERAGE=$coverage"; } >> $GITHUB_OUTPUT
 
       - id: pitest-test-strength-percentage
         name: Extract test strength percentage
@@ -36,7 +36,7 @@ jobs:
           grep -oE '[0-9]+%' |
           tail -n 1 |
           tr -d '%' |
-          { read mutation; echo "MUTATION=mutation"; } >> $GITHUB_OUTPUT
+          { read mutation; echo "MUTATION=$mutation"; } >> $GITHUB_OUTPUT
 
       - id: echo-coverage
         name: Echo coverage
